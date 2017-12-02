@@ -6,6 +6,7 @@ const SOCKET_URL = 'https://rtcmulticonnection.herokuapp.com:443/';
 var RTCController = {
     _initialized: false,
     _instance: null,
+    _canJoin: true,
 
     initialize() {
         if (RTCController._initialized) {
@@ -66,6 +67,10 @@ var RTCController = {
     },
 
     join(roomId = 'main') {
+        const peers = this._instance.getAllParticipants();
+        if (peers.length >= this._instance.maxParticipantsAllowed) {
+            throw new Error('Room is full');
+        }
         return Promise.resolve(this._instance.join(roomId));
     },
 
