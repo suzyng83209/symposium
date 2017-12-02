@@ -75,6 +75,7 @@ class Tools extends React.Component {
     }
 
     renderTabs() {
+        const { current, open } = this.state;
         var tabs = [{ tab: 'messages', icon: 'comments-o' }];
 
         if (this.props.isInterviewer) {
@@ -83,19 +84,14 @@ class Tools extends React.Component {
 
         const onClick = tab => {
             var newState = { current: tab, open: true };
-            if (this.state.current === tab && this.state.open) {
+            if (current === tab && open) {
                 newState.open = false;
             }
             this.setState(newState);
         };
 
         return tabs.map(({ tab, icon }) => (
-            <TabWrapper
-                key={tab}
-                open={this.state.open}
-                onClick={() => onClick(tab)}
-                active={this.state.current === tab}
-            >
+            <TabWrapper key={tab} open={open} active={current === tab} onClick={() => onClick(tab)}>
                 <Icon icon={icon} />
             </TabWrapper>
         ));
@@ -103,21 +99,31 @@ class Tools extends React.Component {
 
     renderSection() {
         var sections = {
-            'recording-tools': <div>{this.renderButtons()}</div>,
-            messages: <Messenger onCommand={this.props.onCommand} />
+            'recording-tools': (
+                <div>
+                    <div>Recorder is {this.props.recorderState}</div>
+                    {this.renderButtons()}
+                    <IconButton icon="" onClick={() => this.props.sendCommand('send-audio')}>
+                        Generate Audio
+                    </IconButton>
+                </div>
+            ),
+            messages: (
+                <Messenger onCommand={this.props.receiveCommand} onData={this.props.receiveData} />
+            )
         };
 
         return sections[this.state.current || 'messages'];
     }
 
     renderButtons() {
-        var { recorderState, onRecorder } = this.props;
+        var { recorderState, sendCommand } = this.props;
         switch (recorderState) {
             case 'paused':
                 return (
                     <div>
-                        <IconButton icon="play" onClick={() => onRecorder('resume')} />
-                        <IconButton icon="stop" onClick={() => onRecorder('stop')}>
+                        <IconButton icon="play" onClick={() => sendCommand('resume')} />
+                        <IconButton icon="stop" onClick={() => sendCommand('stop')}>
                             Stop Recording
                         </IconButton>
                     </div>
@@ -125,15 +131,15 @@ class Tools extends React.Component {
             case 'inactive':
             case 'stopped':
                 return (
-                    <IconButton icon="microphone" onClick={() => onRecorder('start')}>
+                    <IconButton icon="microphone" onClick={() => sendCommand('start')}>
                         Start Recording
                     </IconButton>
                 );
             case 'recording':
                 return (
                     <div>
-                        <IconButton icon="pause" onClick={() => onRecorder('pause')} />
-                        <IconButton icon="stop" onClick={() => onRecorder('stop')}>
+                        <IconButton icon="pause" onClick={() => sendCommand('pause')} />
+                        <IconButton icon="stop" onClick={() => sendCommand('stop')}>
                             Stop Recording
                         </IconButton>
                     </div>
@@ -156,14 +162,16 @@ class Tools extends React.Component {
 export default Tools;
 
 Tools.propTypes = {
-    onCommand: PropTypes.func,
-    onRecorder: PropTypes.func,
+    receiveData: PropTypes.func,
+    receiveCommand: PropTypes.func,
+    sendCommand: PropTypes.func,
     isInterviewer: PropTypes.bool,
-    recorderState: PropTypes.string,
+    recorderState: PropTypes.string
 };
 
 Tools.defaultProps = {
-    onCommand: () => {},
-    onRecorder: () => {},
+    receiveData: () => {},
+    receiveCommand: () => {},
+    sendCommand: () => {},
     recorderState: 'inactive'
 };

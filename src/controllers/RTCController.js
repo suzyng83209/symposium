@@ -33,6 +33,8 @@ var RTCController = {
                 OfferToReceiveVideo: true
             };
 
+            connection.enableFileSharing = true;
+
             connection.maxParticipantsAllowed = 1;
 
             this._instance = connection;
@@ -81,6 +83,10 @@ var RTCController = {
 
         // close socket.io connection
         connection.closeSocket();
+    },
+
+    sendData(data) {
+        this._instance.send(data);
     },
 
     sendMessage(message) {

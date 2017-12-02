@@ -51,7 +51,10 @@ class RoomValidator extends React.Component {
                     {({ recorderState, onCommandSend, onCommandReceived }) => (
                         <FlexWrapper horizontal>
                             <VideoContainer />
-                            <Tools onCommand={onCommandReceived} recorderState={recorderState} />
+                            <Tools
+                                recorderState={recorderState}
+                                receiveCommand={onCommandReceived}
+                            />
                         </FlexWrapper>
                     )}
                 </Room>

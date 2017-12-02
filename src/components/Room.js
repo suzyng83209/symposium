@@ -58,7 +58,7 @@ class Room extends React.Component {
             if (!this.state.recorder) return;
             return this.state.recorder.startRecording({
                 audio: true,
-                video: true
+                video: false
             });
         }, 4000);
     };
@@ -69,7 +69,7 @@ class Room extends React.Component {
             case 'start':
                 return this.handleCountdownStart();
             case 'stop':
-                return recorder[`${command}Recording`](() => {
+                return recorder.stopRecording(() => {
                     const recording = new File([recorder.getBlob()], 'test');
                     this.setState(prevState => ({
                         recordings: prevState.recordings.concat(recording)
@@ -77,8 +77,9 @@ class Room extends React.Component {
                 });
             case 'pause':
             case 'resume':
-            default:
                 return recorder[`${command}Recording`]();
+            default:
+                return this[command]();
         }
     };
 
@@ -89,8 +90,22 @@ class Room extends React.Component {
     };
 
     onCommandSend = command => {
+        console.log('COMMAND', command);
         RTCController.sendCommand(command);
-        this.handleRecorderCommand(command);
+        if (command !== 'send-audio') {
+            this.handleRecorderCommand(command);
+        }
+    };
+
+    onDataReceived = e => {
+        if (e.data.type === 'data') {
+            this.setState({ remoteRecordings: e.data.data });
+        }
+    };
+
+    'send-audio' = () => {
+        debugger;
+        RTCController.sendData(this.state.recordings);
     };
 
     render() {
@@ -99,7 +114,8 @@ class Room extends React.Component {
         return this.props.children({
             recorderState: recorderState,
             onCommandSend: this.onCommandSend,
-            onCommandReceived: this.onCommandReceived
+            onCommandReceived: this.onCommandReceived,
+            onDataReceived: this.onDataReceived,
         });
     }
 }

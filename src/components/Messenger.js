@@ -95,10 +95,15 @@ class Messenger extends React.Component {
     };
 
     onMessage = e => {
-        if (e.data.type !== 'command') {
-            this.updateMessages(e.data);
-        } else {
-            this.props.onCommand(e);
+        console.log('message received', e.data.type);
+        debugger;
+        switch (e.data.type) {
+            case 'command':
+                return this.props.onCommand(e);
+            case 'data':
+                return this.props.onData(e);
+            default:
+                return this.updateMessages(e.data);
         }
     };
 
@@ -119,9 +124,7 @@ class Messenger extends React.Component {
                     {this.state.messages.map((message, i) => (
                         <MessageGroup type={message.type} key={i}>
                             <small>{moment(message.time).format('h:mm a')}</small>
-                            <Message type={message.type}>
-                                {message.text}
-                            </Message>
+                            <Message type={message.type}>{message.text}</Message>
                         </MessageGroup>
                     ))}
                 </MessageContainer>

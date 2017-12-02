@@ -39,12 +39,13 @@ class RoomCreator extends React.Component {
                 />
                 {this.state.roomId && (
                     <Room>
-                        {({ recorderState, onCommandSend, onCommandReceived }) => (
+                        {({ recorderState, onCommandSend, onCommandReceived, onDataReceived }) => (
                             <FlexWrapper horizontal id="media-parent">
                                 <VideoContainer />
                                 <Tools
                                     isInterviewer
-                                    onRecorder={onCommandSend}
+                                    sendCommand={onCommandSend}
+                                    receiveData={onDataReceived}
                                     recorderState={recorderState}
                                 />
                             </FlexWrapper>
