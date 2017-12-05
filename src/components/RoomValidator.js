@@ -29,6 +29,9 @@ class RoomValidator extends React.Component {
                 if (!roomExists) {
                     throw new Error('Room does not exist');
                 }
+                if (RTCController.isRoomFull()) {
+                    throw new Error('Room is full');
+                }
                 return RTCController.join(roomId);
             })
             .then(() => this.setState({ loading: false }))

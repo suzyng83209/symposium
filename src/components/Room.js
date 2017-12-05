@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RecordRTC from 'recordrtc';
+import ffmpeg from 'fluent-ffmpeg';
 import { Countdown } from './Misc';
 import RTCController from '../controllers/RTCController';
 import { setTimeout } from 'timers';
+import { b64toBlob, createAudio } from '../Utils';
 
 class Room extends React.Component {
     constructor(props) {
@@ -70,10 +72,11 @@ class Room extends React.Component {
                 return this.handleCountdownStart();
             case 'stop':
                 return recorder.stopRecording(() => {
-                    const recording = new File([recorder.getBlob()], 'test');
-                    this.setState(prevState => ({
-                        recordings: prevState.recordings.concat(recording)
-                    }));
+                    recorder.getDataURL(dataUri => {
+                        this.setState(prevState => ({
+                            recordings: prevState.recordings.concat(dataUri)
+                        }));
+                    });
                 });
             case 'pause':
             case 'resume':
@@ -92,15 +95,44 @@ class Room extends React.Component {
     onCommandSend = command => {
         console.log('COMMAND', command);
         RTCController.sendCommand(command);
-        if (command !== 'send-audio') {
+        if (command === 'send-audio') {
+            this.generateAudio();
+        } else {
             this.handleRecorderCommand(command);
         }
     };
 
     onDataReceived = e => {
-        if (e.data.type === 'data') {
-            this.setState({ remoteRecordings: e.data.data });
+        var { type, data = [] } = e.data;
+        if (type !== 'data' || typeof data !== 'array') {
+            return;
         }
+        if (data.length && data.length !== this.state.recordings.length) {
+            throw new Error('Uneven number of recordings between local and remote streams');
+        }
+        dataUris = this.state.recordings.map((l, i) => [l, data[i]]); // zipping the two arrays
+        this.generateAudio(dataUris);
+    };
+
+    generateAudio = (recordings = []) => {
+        var containerLocal = document.getElementById('local_assets');
+        var containerRemote = document.getElementById('remote_assets');
+        var containerCombined = document.getElementById('combined_assets');
+
+        recordings.map(([local, remote]) => {
+            const localFile = b64toBlob(local);
+            const remoteFile = b64toBlob(remote);
+
+            // send to backend api
+
+            const localAudio = createAudio(local);
+            const remoteAudio = createAudio(remote);
+
+            containerLocal.appendChild(localAudio);
+            containerRemote.appendChild(remoteAudio);
+        });
+
+        return;
     };
 
     'send-audio' = () => {
@@ -115,7 +147,7 @@ class Room extends React.Component {
             recorderState: recorderState,
             onCommandSend: this.onCommandSend,
             onCommandReceived: this.onCommandReceived,
-            onDataReceived: this.onDataReceived,
+            onDataReceived: this.onDataReceived
         });
     }
 }
