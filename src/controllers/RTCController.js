@@ -76,7 +76,6 @@ var RTCController = {
     isRoomFull() {
         var connection = this._instance;
         var isFull = connection.getAllParticipants().length >= connection.maxParticipantsAllowed;
-        debugger;
         return isFull;
     },
 

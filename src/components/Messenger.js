@@ -96,7 +96,6 @@ class Messenger extends React.Component {
 
     onMessage = e => {
         console.log('message received', e.data.type);
-        debugger;
         switch (e.data.type) {
             case 'command':
                 return this.props.onCommand(e);

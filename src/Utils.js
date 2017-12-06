@@ -41,7 +41,6 @@ export const withParams = Component => {
 };
 
 export const b64toBlob = (b64Data, fileName, contentType = '', sliceSize = 512) => {
-    debugger;
     var byteCharacters = atob(b64Data);
     var byteArrays = [];
 
@@ -70,6 +69,8 @@ export const createAudio = src => {
     audio.controls = true;
     audio.volume = 1;
     audio.src = src;
+
+    console.log(audio.controlsList);
 
     return audio;
 }

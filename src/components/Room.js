@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RecordRTC from 'recordrtc';
-import ffmpeg from 'fluent-ffmpeg';
 import { Countdown } from './Misc';
 import RTCController from '../controllers/RTCController';
 import { setTimeout } from 'timers';
@@ -58,6 +57,7 @@ class Room extends React.Component {
 
         setTimeout(() => {
             if (!this.state.recorder) return;
+            console.log('RECORDER', this.state.recorder);
             return this.state.recorder.startRecording({
                 audio: true,
                 video: false
@@ -88,6 +88,7 @@ class Room extends React.Component {
 
     onCommandReceived = e => {
         if (e.data.type === 'command' && this.state.recorder) {
+            console.log('[COMMAND RECEIVED] ', e.data.text);
             this.handleRecorderCommand(e.data.text);
         }
     };
@@ -96,7 +97,7 @@ class Room extends React.Component {
         console.log('COMMAND', command);
         RTCController.sendCommand(command);
         if (command === 'send-audio') {
-            this.generateAudio();
+            this.generateAudio(this.state.recordings.map(recording => [recording]));
         } else {
             this.handleRecorderCommand(command);
         }
@@ -110,7 +111,7 @@ class Room extends React.Component {
         if (data.length && data.length !== this.state.recordings.length) {
             throw new Error('Uneven number of recordings between local and remote streams');
         }
-        dataUris = this.state.recordings.map((l, i) => [l, data[i]]); // zipping the two arrays
+        var dataUris = this.state.recordings.map((l, i) => [l, data[i]]); // zipping the two arrays
         this.generateAudio(dataUris);
     };
 
@@ -120,13 +121,13 @@ class Room extends React.Component {
         var containerCombined = document.getElementById('combined_assets');
 
         recordings.map(([local, remote]) => {
-            const localFile = b64toBlob(local);
-            const remoteFile = b64toBlob(remote);
+            const localFile = b64toBlob(local.slice(local.lastIndexOf(',') + 1));
+            const remoteFile = remote ? b64toBlob(remote.slice(remote.lastIndexOf(',') + 1)) : null;
 
             // send to backend api
 
             const localAudio = createAudio(local);
-            const remoteAudio = createAudio(remote);
+            const remoteAudio = remote ? createAudio(remote) : document.createElement('div');
 
             containerLocal.appendChild(localAudio);
             containerRemote.appendChild(remoteAudio);
@@ -136,7 +137,6 @@ class Room extends React.Component {
     };
 
     'send-audio' = () => {
-        debugger;
         RTCController.sendData(this.state.recordings);
     };
 
