@@ -96,7 +96,10 @@ var RTCController = {
     },
 
     sendData(data) {
-        this._instance.send(data);
+        this._instance.send({
+            type: 'data',
+            data
+        });
     },
 
     sendMessage(message) {

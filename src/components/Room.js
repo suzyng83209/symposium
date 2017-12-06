@@ -25,6 +25,10 @@ class Room extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        RTCController.close();
+    }
+
     onStream = e => {
         var mediaElement = e.mediaElement;
         mediaElement.controls = false;
@@ -96,16 +100,14 @@ class Room extends React.Component {
     onCommandSend = command => {
         console.log('COMMAND', command);
         RTCController.sendCommand(command);
-        if (command === 'send-audio') {
-            this.generateAudio(this.state.recordings.map(recording => [recording]));
-        } else {
+        if (command !== 'send-audio') {
             this.handleRecorderCommand(command);
         }
     };
 
     onDataReceived = e => {
         var { type, data = [] } = e.data;
-        if (type !== 'data' || typeof data !== 'array') {
+        if (type !== 'data' || typeof data !== 'object') {
             return;
         }
         if (data.length && data.length !== this.state.recordings.length) {
